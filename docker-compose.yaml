@@ -1,0 +1,26 @@
+version: '3.9'
+services:
+  backend:
+    build:
+      context: .
+    env_file:
+      - .env
+    ports:
+      - 2345:2345
+      - 8080:8080
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+  db:
+    image: postgres:14-alpine
+    volumes:
+      - ./data/db:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - 5432:5432
+
+
+    

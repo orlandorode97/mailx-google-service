@@ -13,7 +13,7 @@ import (
 )
 
 func main() {
-	logger := kitlog.With(kitlog.NewJSONLogger(os.Stdin), "ts", kitlog.DefaultTimestampUTC)
+	logger := kitlog.With(kitlog.NewLogfmtLogger(os.Stdout), "ts", kitlog.DefaultTimestampUTC)
 
 	mux := http.NewServeMux()
 	mux.Handle("/health", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
