@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"net/http"
 	"os"
@@ -10,12 +11,38 @@ import (
 	"time"
 
 	kitlog "github.com/go-kit/kit/log"
+	"github.com/jmoiron/sqlx"
+	"github.com/orlandorode97/mailx-google-service/google"
+	"github.com/orlandorode97/mailx-google-service/labels"
+	repopg "github.com/orlandorode97/mailx-google-service/repos/postgres"
 )
 
 func main() {
 	logger := kitlog.With(kitlog.NewLogfmtLogger(os.Stdout), "ts", kitlog.DefaultTimestampUTC)
 
+	db, err := sql.Open("postgres", "")
+	if err != nil {
+		logger.Log(
+			"message", "it was not possible to open a new connection with the database",
+			"err", err.Error(),
+			"severity", "CRITICAL",
+		)
+	}
+
+	repo := repopg.New(sqlx.NewDb(db, "postgres"))
+	gmailClient, err := google.New()
+	if err != nil {
+		logger.Log(
+			"message", "could not create a gmail client",
+			"err", err.Error(),
+			"severity", "CRITICAL",
+		)
+	}
+	var labelService labels.Service
+	labelService = labels.NewService(logger, repo, gmailClient)
+
 	mux := http.NewServeMux()
+	mux.Handle("/", labels.MakeHandler(labelService, logger))
 	mux.Handle("/health", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		fmt.Fprintf(w, "ok")
