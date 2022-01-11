@@ -12,6 +12,7 @@ import (
 
 	kitlog "github.com/go-kit/kit/log"
 	"github.com/jmoiron/sqlx"
+	_ "github.com/lib/pq"
 	"github.com/orlandorode97/mailx-google-service/google"
 	"github.com/orlandorode97/mailx-google-service/labels"
 	repopg "github.com/orlandorode97/mailx-google-service/repos/postgres"
