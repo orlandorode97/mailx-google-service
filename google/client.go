@@ -2,15 +2,26 @@ package google
 
 import (
 	"context"
+	"fmt"
+	"net/http"
 
-	"google.golang.org/api/gmail/v1"
+	"golang.org/x/oauth2"
 )
 
-func New() (*gmail.Service, error) {
+func NewClient(config *oauth2.Config) (*http.Client, error) {
 	ctx := context.Background()
-	gmailService, err := gmail.NewService(ctx)
+
+	url := config.AuthCodeURL("random-thing", oauth2.AccessTypeOffline)
+	fmt.Println("url", url)
+
+	var authCode string
+	if _, err := fmt.Scan(&authCode); err != nil {
+		return nil, err
+	}
+	token, err := config.Exchange(ctx, authCode)
 	if err != nil {
 		return nil, err
 	}
-	return gmailService, nil
+
+	return config.Client(context.Background(), token), nil
 }

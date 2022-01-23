@@ -20,6 +20,10 @@ type service struct {
 	gmail  *gmail.Service
 }
 
+func (s *service) SetGmail(gmail *gmail.Service) {
+	s.gmail = gmail
+}
+
 func NewService(logger kitlog.Logger, repo repos.Repository, gmail *gmail.Service) Service {
 	return &service{
 		logger: logger,
