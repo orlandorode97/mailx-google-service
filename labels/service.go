@@ -1,12 +1,12 @@
-package google
+package labels
 
 import (
 	kitlog "github.com/go-kit/kit/log"
 	"github.com/orlandorode97/mailx-google-service/repos"
+	"google.golang.org/api/gmail/v1"
 )
 
 type Service interface {
-	GetUserProfile()
 	CreateLabel()
 	DeleteLabel()
 	GetLabelById()
@@ -17,17 +17,15 @@ type Service interface {
 type service struct {
 	logger kitlog.Logger
 	repo   repos.Repository
+	gmail  *gmail.Service
 }
 
-func NewService(logger kitlog.Logger, repo repos.Repository) Service {
+func NewService(logger kitlog.Logger, repo repos.Repository, gmail *gmail.Service) Service {
 	return &service{
 		logger: logger,
 		repo:   repo,
+		gmail:  gmail,
 	}
-}
-
-func (s *service) GetUserProfile() {
-
 }
 
 func (s *service) CreateLabel() {

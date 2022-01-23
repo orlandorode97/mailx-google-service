@@ -1,4 +1,4 @@
-package google
+package labels
 
 import (
 	"context"
@@ -12,22 +12,20 @@ import (
 )
 
 type Endpoints struct {
-	GetUserProfileEndpoint endpoint.Endpoint
-	CreateLabelEndpoint    endpoint.Endpoint
-	DeleteLabelEndpoint    endpoint.Endpoint
-	GetLabelByIdEndpoint   endpoint.Endpoint
-	GetLabelsEndpoint      endpoint.Endpoint
-	UpdateLabelEndpoint    endpoint.Endpoint
+	CreateLabelEndpoint  endpoint.Endpoint
+	DeleteLabelEndpoint  endpoint.Endpoint
+	GetLabelByIdEndpoint endpoint.Endpoint
+	GetLabelsEndpoint    endpoint.Endpoint
+	UpdateLabelEndpoint  endpoint.Endpoint
 }
 
 func MakeEndpoints(s Service) Endpoints {
 	return Endpoints{
-		GetUserProfileEndpoint: MakeGetUserProfileEndpoint(s),
-		CreateLabelEndpoint:    MakeCreateLabelEndpoint(s),
-		DeleteLabelEndpoint:    MakeDeleteLabelEndpoint(s),
-		GetLabelByIdEndpoint:   MakeGetLabelByIdEndpoint(s),
-		GetLabelsEndpoint:      MakeGetLabelsEndpoint(s),
-		UpdateLabelEndpoint:    MakeUpdateLabelEndpoint(s),
+		CreateLabelEndpoint:  MakeCreateLabelEndpoint(s),
+		DeleteLabelEndpoint:  MakeDeleteLabelEndpoint(s),
+		GetLabelByIdEndpoint: MakeGetLabelByIdEndpoint(s),
+		GetLabelsEndpoint:    MakeGetLabelsEndpoint(s),
+		UpdateLabelEndpoint:  MakeUpdateLabelEndpoint(s),
 	}
 }
 
@@ -42,19 +40,12 @@ func MakeClientEndpoints(instance string) (Endpoints, error) {
 	options := []httptransport.ClientOption{}
 
 	return Endpoints{
-		GetUserProfileEndpoint: httptransport.NewClient(http.MethodGet, target, nil, nil, options...).Endpoint(),
-		CreateLabelEndpoint:    httptransport.NewClient(http.MethodPost, target, nil, nil, options...).Endpoint(),
-		DeleteLabelEndpoint:    httptransport.NewClient(http.MethodDelete, target, nil, nil, options...).Endpoint(),
-		GetLabelByIdEndpoint:   httptransport.NewClient(http.MethodGet, target, nil, nil, options...).Endpoint(),
-		GetLabelsEndpoint:      httptransport.NewClient(http.MethodGet, target, nil, nil, options...).Endpoint(),
-		UpdateLabelEndpoint:    httptransport.NewClient(http.MethodPut, target, nil, nil, options...).Endpoint(),
+		CreateLabelEndpoint:  httptransport.NewClient(http.MethodPost, target, nil, nil, options...).Endpoint(),
+		DeleteLabelEndpoint:  httptransport.NewClient(http.MethodDelete, target, nil, nil, options...).Endpoint(),
+		GetLabelByIdEndpoint: httptransport.NewClient(http.MethodGet, target, nil, nil, options...).Endpoint(),
+		GetLabelsEndpoint:    httptransport.NewClient(http.MethodGet, target, nil, nil, options...).Endpoint(),
+		UpdateLabelEndpoint:  httptransport.NewClient(http.MethodPut, target, nil, nil, options...).Endpoint(),
 	}, nil
-}
-
-func MakeGetUserProfileEndpoint(s Service) endpoint.Endpoint {
-	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
-		return nil, nil
-	}
 }
 
 func MakeCreateLabelEndpoint(s Service) endpoint.Endpoint {
