@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
@@ -16,42 +17,89 @@ import (
 	"github.com/orlandorode97/mailx-google-service/google"
 	"github.com/orlandorode97/mailx-google-service/labels"
 	repopg "github.com/orlandorode97/mailx-google-service/repos/postgres"
+	"github.com/rs/cors"
+	"github.com/spf13/viper"
 )
 
 func main() {
 	logger := kitlog.With(kitlog.NewLogfmtLogger(os.Stdout), "ts", kitlog.DefaultTimestampUTC)
-
-	db, err := sql.Open("postgres", "")
+	err := setViperConfig()
+	if err != nil {
+		logger.Log(
+			"message", "it was not possible to read the .env file",
+			"error", err.Error(),
+			"severity", "CRITITAL",
+		)
+		return
+	}
+	db, err := sql.Open("postgres", repopg.BuildDSN())
 	if err != nil {
 		logger.Log(
 			"message", "it was not possible to open a new connection with the database",
 			"err", err.Error(),
 			"severity", "CRITICAL",
 		)
+		return
 	}
 
 	repo := repopg.New(sqlx.NewDb(db, "postgres"))
-	gmailClient, err := google.New()
+
+	oauthConfig, err := google.NewConfig()
 	if err != nil {
 		logger.Log(
-			"message", "could not create a gmail client",
+			"message", "it was not possible creating oauth configuration",
 			"err", err.Error(),
 			"severity", "CRITICAL",
 		)
+		return
 	}
+	// client, err := google.NewClient(oauthConfig)
+	// if err != nil {
+	// 	logger.Log(
+	// 		"message", "could not create oauth2 client",
+	// 		"err", err.Error(),
+	// 		"severity", "CRITICAL",
+	// 	)
+	// 	return
+	// }
+
+	// // gmailSvc, err := gmail.NewService(context.Background(), option.WithHTTPClient(client))
+	// if err != nil {
+	// 	logger.Log(
+	// 		"message", "could not create gmail client",
+	// 		"err", err.Error(),
+	// 		"severity", "CRITICAL",
+	// 	)
+	// 	return
+	// }
 	var labelService labels.Service
-	labelService = labels.NewService(logger, repo, gmailClient)
+	labelService = labels.NewService(logger, repo, nil)
 
 	mux := http.NewServeMux()
 	mux.Handle("/", labels.MakeHandler(labelService, logger))
+	mux.Handle("/callback", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Println(r.FormValue("state"), r.FormValue("code"))
+		http.Redirect(w, r, "http://localhost:3000/inbox", http.StatusTemporaryRedirect)
+	}))
+
+	mux.Handle("/auth/url/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		authUrl := oauthConfig.AuthCodeURL("random-string")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(map[string]string{
+			"auth_url": authUrl,
+		})
+	}))
+
 	mux.Handle("/health", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		fmt.Fprintf(w, "ok")
 	}))
 
+	c := cors.AllowAll()
+
 	server := &http.Server{
 		Addr:    ":8080",
-		Handler: mux,
+		Handler: c.Handler(mux),
 	}
 
 	listenAndServe(server, logger)
@@ -98,4 +146,10 @@ func listenAndServe(server *http.Server, logger kitlog.Logger) {
 		)
 	}
 	<-connClosed
+}
+
+func setViperConfig() error {
+	viper.AddConfigPath(".")
+	viper.SetConfigFile(".env")
+	return viper.ReadInConfig()
 }

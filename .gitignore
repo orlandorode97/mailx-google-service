@@ -15,4 +15,4 @@
 # vendor/
 data/
 .env
-.vscode
+.vscode/
