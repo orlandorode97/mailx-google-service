@@ -50,7 +50,7 @@ goose create migration_file_name
 ```
 The previous command will generate a go file where the needed sql statements will be placed. This migration has the following format `yyyymmddhhmmss_migration_name.go` and is created at the root of the project, you should move the migration file into the `migrations` folder.
 
-When the container `mailx-google-service` is up and running run the follwing command to make a migration:
+When the container `mailx-google-service` is up and running run the follwing command to run a migration:
 ```sh
 make goose-up
 ```
