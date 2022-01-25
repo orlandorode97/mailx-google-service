@@ -54,6 +54,20 @@ When the container `mailx-google-service` is up and running run the follwing com
 ```sh
 make goose-up
 ```
+Your terminal should print something like:
+```sh                                              
+Building goose binary --->
+go build -o . ./cmd/goose
+Goose binary built
+Up migrations
+./goose up
+<nil>
+2022/01/25 00:48:59 OK    20220124004601_google_users_table.go
+2022/01/25 00:48:59 OK    20220124234200_google_auth_users_table.go
+2022/01/25 00:48:59 OK    20220124235821_auth_users_relation.go
+2022/01/25 00:48:59 goose: no migrations to run. current version: 20220124235821
+Migrations up successfully
+```
 
 ### TODO
 A lot of things 😳

@@ -11,7 +11,7 @@ require (
 	github.com/rs/cors v1.8.2
 	github.com/spf13/viper v1.10.1
 	golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8
-	google.golang.org/api v0.64.0
+	google.golang.org/api v0.65.0
 )
 
 require (

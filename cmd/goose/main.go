@@ -33,7 +33,6 @@ func main() {
 	psInfo := buildDSN()
 
 	db, err := goose.OpenDBWithDriver("postgres", psInfo)
-	fmt.Println(err)
 	if err != nil {
 		logger.Log(
 			"message", "it was not possible to open the database",
