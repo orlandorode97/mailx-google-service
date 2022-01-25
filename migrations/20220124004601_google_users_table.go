@@ -30,7 +30,7 @@ func upGoogleUsersTableGo(tx *sql.Tx) error {
 
 func downGoogleUsersTableGo(tx *sql.Tx) error {
 	// This code is executed when the migration is rolled back.
-	_, err := tx.Exec(`DROP TABLE EXISTS users;`)
+	_, err := tx.Exec(`DROP TABLE IF EXISTS users;`)
 	if err != nil {
 		return err
 	}
