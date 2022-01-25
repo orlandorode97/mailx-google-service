@@ -28,14 +28,31 @@ goose-build:
 	@echo "Goose binary built"
 .PHONY: gooose-build
 
-goose-up:
+up:
 	@echo "Up migrations"
 	./goose up
 	@echo "Migrations up successfully"
-.PHONY: gooose-build gooose-up
+.PHONY: up
 
-goose-down:
+down:
 	@echo "Down migrations"
 	./goose down
 	@echo "Migrations down successfully"
-.PHONY: goose-build gooose-down
+.PHONY: down
+
+status:
+	@echo "Goose status"
+	./goose status
+.PHONY: status
+
+clear:
+	@echo "Removing goose binary"
+	rm -rf ./goose
+	@echo "goose binary removed successfully"
+.PHONY: clear
+
+goose-up: goose-build up
+goose-down: goose-build down
+goose-status: goose-build status
+goose-clear: clear
+
