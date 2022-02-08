@@ -5,17 +5,10 @@ import (
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/gmail/v1"
+	oauthv2 "google.golang.org/api/oauth2/v2"
 )
 
-func NewConfig() (*oauth2.Config, error) {
-	viper.AddConfigPath(".")
-	viper.SetConfigFile(".env")
-
-	err := viper.ReadInConfig()
-	if err != nil {
-		return nil, err
-	}
-
+func NewConfig() *oauth2.Config {
 	return &oauth2.Config{
 		RedirectURL:  viper.GetString("GOOGLE_REDIRECT_URL"),
 		ClientID:     viper.GetString("GOOGLE_CLIENT_ID"),
@@ -27,7 +20,8 @@ func NewConfig() (*oauth2.Config, error) {
 			gmail.GmailAddonsCurrentMessageMetadataScope,
 			gmail.GmailAddonsCurrentMessageReadonlyScope,
 			gmail.GmailComposeScope,
+			oauthv2.UserinfoProfileScope,
 		},
 		Endpoint: google.Endpoint,
-	}, nil
+	}
 }
