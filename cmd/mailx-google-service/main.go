@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
@@ -14,8 +13,11 @@ import (
 	kitlog "github.com/go-kit/kit/log"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
+	"github.com/orlandorode97/mailx-google-service"
+	"github.com/orlandorode97/mailx-google-service/auth"
 	"github.com/orlandorode97/mailx-google-service/google"
 	"github.com/orlandorode97/mailx-google-service/labels"
+	"github.com/orlandorode97/mailx-google-service/repos"
 	repopg "github.com/orlandorode97/mailx-google-service/repos/postgres"
 	"github.com/rs/cors"
 	"github.com/spf13/viper"
@@ -32,7 +34,7 @@ func main() {
 		)
 		return
 	}
-	db, err := sql.Open("postgres", repopg.BuildDSN())
+	db, err := sql.Open("postgres", repos.BuildDSN())
 	if err != nil {
 		logger.Log(
 			"message", "it was not possible to open a new connection with the database",
@@ -44,51 +46,19 @@ func main() {
 
 	repo := repopg.New(sqlx.NewDb(db, "postgres"))
 
-	oauthConfig, err := google.NewConfig()
-	if err != nil {
-		logger.Log(
-			"message", "it was not possible creating oauth configuration",
-			"err", err.Error(),
-			"severity", "CRITICAL",
-		)
-		return
-	}
-	// client, err := google.NewClient(oauthConfig)
-	// if err != nil {
-	// 	logger.Log(
-	// 		"message", "could not create oauth2 client",
-	// 		"err", err.Error(),
-	// 		"severity", "CRITICAL",
-	// 	)
-	// 	return
-	// }
+	oauthConfig := google.NewConfig()
 
-	// // gmailSvc, err := gmail.NewService(context.Background(), option.WithHTTPClient(client))
-	// if err != nil {
-	// 	logger.Log(
-	// 		"message", "could not create gmail client",
-	// 		"err", err.Error(),
-	// 		"severity", "CRITICAL",
-	// 	)
-	// 	return
-	// }
-	var labelService labels.Service
-	labelService = labels.NewService(logger, repo, nil)
+	mailxSvc := mailx.NewService(logger, oauthConfig)
+
+	var labelsSvc labels.Service
+	labelsSvc = labels.NewService(logger, repo, mailxSvc)
+
+	var authSvc auth.Service
+	authSvc = auth.NewService(logger, repo, mailxSvc)
 
 	mux := http.NewServeMux()
-	mux.Handle("/", labels.MakeHandler(labelService, logger))
-	mux.Handle("/callback", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println(r.FormValue("state"), r.FormValue("code"))
-		http.Redirect(w, r, "http://localhost:3000/inbox", http.StatusTemporaryRedirect)
-	}))
-
-	mux.Handle("/auth/url/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		authUrl := oauthConfig.AuthCodeURL("random-string")
-		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(map[string]string{
-			"auth_url": authUrl,
-		})
-	}))
+	mux.Handle("/labels/", labels.MakeHandler(labelsSvc, logger))
+	mux.Handle("/login/", auth.MakeHandler(authSvc, logger))
 
 	mux.Handle("/health", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
