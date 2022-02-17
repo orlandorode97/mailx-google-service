@@ -28,7 +28,7 @@ func main() {
 	err := setViperConfig()
 	if err != nil {
 		logger.Log(
-			"message", "it was not possible to read the .env file",
+			"message", "it was not possible to read the .env file.",
 			"error", err.Error(),
 			"severity", "CRITITAL",
 		)
@@ -37,7 +37,7 @@ func main() {
 	db, err := sql.Open("postgres", repos.BuildDSN())
 	if err != nil {
 		logger.Log(
-			"message", "it was not possible to open a new connection with the database",
+			"message", "it was not possible to open a new connection with the database.",
 			"err", err.Error(),
 			"severity", "CRITICAL",
 		)
@@ -83,7 +83,7 @@ func listenAndServe(server *http.Server, logger kitlog.Logger) {
 		signal.Notify(sigint, syscall.SIGINT, syscall.SIGTERM)
 		<-sigint
 		logger.Log(
-			"message", "stopping mailx-google-service",
+			"message", "stopping mailx-google-service.",
 			"severity", "NOTICE",
 		)
 
@@ -91,7 +91,7 @@ func listenAndServe(server *http.Server, logger kitlog.Logger) {
 		defer cancel()
 		if err := server.Shutdown(ctx); err != nil {
 			logger.Log(
-				"message", "mailx-google-service server has stopped",
+				"message", "mailx-google-service server has stopped.",
 				"err", err.Error(),
 				"severity", "CRITICAL",
 			)
@@ -100,7 +100,7 @@ func listenAndServe(server *http.Server, logger kitlog.Logger) {
 	}()
 
 	logger.Log(
-		"message", fmt.Sprintf("listening for HTTP connections on %s", server.Addr),
+		"message", fmt.Sprintf("listening for HTTP connections on %s.", server.Addr),
 		"severity", "NOTICE",
 	)
 
@@ -111,7 +111,7 @@ func listenAndServe(server *http.Server, logger kitlog.Logger) {
 		)
 	} else {
 		logger.Log(
-			"message", "mailx-google-service stopped",
+			"message", "mailx-google-service stopped.",
 			"severity", "NOTICE",
 		)
 	}
