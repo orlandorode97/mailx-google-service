@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/go-kit/kit/endpoint"
-	"github.com/orlandorode97/mailx-google-service/repos"
 )
 
 type Endpoints struct {
@@ -32,23 +31,15 @@ func MakeGetOauthUrlEndpoint(s Service) endpoint.Endpoint {
 func MakeGetOauthCallbackEndpoint(s Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(callbackRequest)
-		token, err := s.GenerateOauthToken(ctx, req.Code)
+		user, err := s.ConfigGmailServiceUser(ctx, req.Code)
 		if err != nil {
 			return callbackResponse{Err: err}, nil
 		}
-
-		client := s.GenerateHttpClient(ctx, token)
-		err = s.ConfigGmailService(ctx, client)
+		jwt, err := s.CreateJWT(ctx, user)
 		if err != nil {
 			return callbackResponse{Err: err}, nil
 		}
-
-		err = s.CreateUser(ctx, token)
-		if err != nil {
-			return callbackResponse{Err: err}, nil
-		}
-
-		return callbackResponse{}, nil
+		return callbackResponse{JWT: jwt}, nil
 	}
 }
 
@@ -63,8 +54,8 @@ type callbackRequest struct {
 }
 
 type callbackResponse struct {
-	User *repos.User `json:"user,omitempty"`
-	Err  error       `json:"error,omitempty"`
+	JWT string `json:"-"`
+	Err error  `json:"error,omitempty"`
 }
 
 func (c callbackResponse) error() error {
