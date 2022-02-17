@@ -19,7 +19,9 @@ func upGoogleUsersTableGo(tx *sql.Tx) error {
 			given_name CHAR(50) NOT NULL,
 			family_name CHAR(50) NOT NULL,
 			picture CHAR(100) NOT NULL,
-			locale CHAR(10)
+			locale CHAR(10),
+			created_at TIMESTAMP NOT NULL DEFAULT now(),
+			updated_at TIMESTAMP NOT NULL DEFAULT now()
 		);
 	`)
 	if err != nil {
