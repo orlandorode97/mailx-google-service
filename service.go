@@ -2,7 +2,6 @@ package mailx
 
 import (
 	"context"
-	"net/http"
 
 	"github.com/go-kit/kit/log"
 	"golang.org/x/oauth2"
@@ -23,61 +22,56 @@ const (
 type Service interface {
 	// GetOauthConfig returns the oauth pointer configuration.
 	GetOauthConfig() *oauth2.Config
-	// GetHttpClient returns an http pointer client.
-	GetHttpClient() *http.Client
-	// GetGmailService returns a gmail pointer service.
-	GetGmailService() *gmail.Service
-	// ConfigGmailService sets a new gmail r
-	ConfigGmailService(*http.Client) error
+	// GetGmailService returns a gmail pointer service by the email of the user.
+	GetGmailService(string) *gmail.Service
+	// ConfigGmailService returns a new gmail service instance.
+	CreateGmailService(*oauth2.Token) (*gmail.Service, error)
+	// AddGmailServiceByID creates a new entry of a pointer gmail service by google user ID.
+	AddGmailServiceByID(string, *gmail.Service)
 }
 
 type service struct {
-	logger   log.Logger
-	config   *oauth2.Config
-	client   *http.Client
-	gmailSvc *gmail.Service
+	logger log.Logger
+	//`config` keeps the oauth2 configuration that holds google_client_id, client_secret, and other needed things.
+	config *oauth2.Config
+	//Map that holds google user ID as a key and stores a pointer gmail service.
+	gmailSvcs map[string]*gmail.Service
 }
 
 func NewService(logger log.Logger, config *oauth2.Config) Service {
 	return &service{
-		logger:   logger,
-		config:   config,
-		client:   nil,
-		gmailSvc: nil,
+		logger:    logger,
+		config:    config,
+		gmailSvcs: make(map[string]*gmail.Service),
 	}
 }
 
-func (s *service) AddService(gmailSvc *gmail.Service) {
-	s.gmailSvc = gmailSvc
-}
-
-func (s *service) AddClient(client *http.Client) {
-	s.client = client
+func (s *service) AddGmailServiceByID(ID string, gmailSvc *gmail.Service) {
+	s.gmailSvcs[ID] = gmailSvc
 }
 
 func (s *service) GetOauthConfig() *oauth2.Config {
 	return s.config
 }
 
-func (s *service) GetHttpClient() *http.Client {
-	return s.client
+func (s *service) GetGmailService(ID string) *gmail.Service {
+	gmailSvc, ok := s.gmailSvcs[ID]
+	if !ok {
+		return nil
+	}
+	return gmailSvc
 }
 
-func (s *service) GetGmailService() *gmail.Service {
-	return s.gmailSvc
-}
-
-func (s *service) ConfigGmailService(client *http.Client) error {
-	gmailSvc, err := gmail.NewService(context.Background(), option.WithHTTPClient(client))
+func (s *service) CreateGmailService(token *oauth2.Token) (*gmail.Service, error) {
+	ctx := context.Background()
+	gmailSvc, err := gmail.NewService(ctx, option.WithTokenSource(s.config.TokenSource(ctx, token)))
 	if err != nil {
 		s.logger.Log(
 			"message", "could not create gmail service",
 			"err", err.Error(),
 			"severity", "CRITICAL",
 		)
-		return err
+		return nil, err
 	}
-	s.AddClient(client)
-	s.AddService(gmailSvc)
-	return nil
+	return gmailSvc, err
 }

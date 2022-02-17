@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 
 	kitlog "github.com/go-kit/kit/log"
 	kithttp "github.com/go-kit/kit/transport/http"
@@ -54,12 +55,27 @@ func decodeCallbackRequest(_ context.Context, r *http.Request) (interface{}, err
 }
 
 func encodeCallbackResponse(_ context.Context, w http.ResponseWriter, response interface{}) error {
+	var redirectUrl string
 	if e, ok := response.(errorer); ok && e.error() != nil {
-		redirectUrl := fmt.Sprintf("http://localhost:3000/error?error_message=%s", e.error().Error())
+		redirectUrl = fmt.Sprintf("http://localhost:3000/error?error_message=%s", e.error().Error())
 		http.Redirect(w, &http.Request{}, redirectUrl, http.StatusPermanentRedirect)
 		return nil
 	}
-	http.Redirect(w, &http.Request{}, "http://localhost:3000/inbox", http.StatusTemporaryRedirect)
+	resp, _ := response.(callbackResponse)
+	cookie := &http.Cookie{
+		Name:  "mailx_google_auth",
+		Value: resp.JWT,
+	}
+
+	cookieStr, err := url.QueryUnescape(cookie.String())
+	if err != nil {
+		redirectUrl = fmt.Sprintf("http://localhost:3000/error?error_message=%s", err.Error())
+		http.Redirect(w, &http.Request{}, redirectUrl, http.StatusPermanentRedirect)
+		return nil
+	}
+
+	redirectUrl = fmt.Sprintf("%s?%s", "http://localhost:3000/success", cookieStr)
+	http.Redirect(w, &http.Request{}, redirectUrl, http.StatusPermanentRedirect)
 	return nil
 }
 

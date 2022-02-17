@@ -18,7 +18,10 @@ func upGoogleAuthUsersTable(tx *sql.Tx) error {
 			access_token TEXT NOT NULL,
 			token_expiration DATE NOT NULL,
 			refresh_token TEXT NOT NULL,
-			token_type CHAR(10) NOT NULL
+			token_type CHAR(10) NOT NULL,
+			is_active BOOLEAN NOT NULL DEFAULT TRUE,
+			created_at TIMESTAMP NOT NULL DEFAULT now(),
+			updated_at TIMESTAMP NOT NULL DEFAULT now()
 		);
 	`)
 	if err != nil {
