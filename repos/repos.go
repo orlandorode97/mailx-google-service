@@ -4,17 +4,10 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/orlandorode97/mailx-google-service/models"
 	"github.com/spf13/viper"
+	"golang.org/x/oauth2"
 )
-
-type User struct {
-	ID         string `json:"id"`
-	Name       string `json:"name"`
-	GivenName  string `json:"given_name"`
-	FamilyName string `json:"family_name"`
-	Picture    string `json:"picture"`
-	Locale     string `json:"locale"`
-}
 
 func BuildDSN() string {
 	return fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=%s&search_path=%s",
@@ -28,6 +21,9 @@ func BuildDSN() string {
 }
 
 type Repository interface {
-	CreateUser(context.Context, *User) error
-	GetUserByID(context.Context, string) (*User, error)
+	CreateUser(context.Context, *models.User) error
+	GetUserByID(context.Context, string) (*models.User, error)
+	GetTokenByUserId(context.Context, string) (*models.Token, error)
+	SaveAccessToken(context.Context, string, *oauth2.Token) error
+	UpdateAccessToken(context.Context, string, *oauth2.Token) error
 }
