@@ -36,20 +36,22 @@ func Authentication(next http.Handler) http.Handler {
 			next.ServeHTTP(rw, r.WithContext(ctx))
 		}
 
-		token, err := jwt.ParseWithClaims(cookie.Value, &auth.MailxClams{}, func(t *jwt.Token) (interface{}, error) {
+		_, err = jwt.ParseWithClaims(cookie.Value, &auth.MailxClams{}, func(t *jwt.Token) (interface{}, error) {
 			return []byte(viper.GetString("JWT_SIGNING_KEY")), nil
 		})
 
-		if err != nil && !token.Valid {
+		if err != nil {
 			e, ok := err.(*jwt.ValidationError)
 			if ok {
 				switch {
+				case e.Errors&jwt.ValidationErrorSignatureInvalid != 0:
+					ctx = context.WithValue(r.Context(), InvalidAuthKey, models.ErrInvalidSignature{})
 				case e.Errors&jwt.ValidationErrorMalformed != 0:
 					ctx = context.WithValue(r.Context(), InvalidAuthKey, models.ErrMalformedToken{})
-				case e.Errors&jwt.ValidationErrorExpired != 0:
-					ctx = context.WithValue(r.Context(), InvalidAuthKey, models.ErrExpiredToken{})
 				case e.Errors&jwt.ValidationErrorNotValidYet != 0:
 					ctx = context.WithValue(r.Context(), InvalidAuthKey, models.ErrInactiveToken{})
+				case e.Errors&jwt.ValidationErrorExpired != 0:
+					ctx = context.WithValue(r.Context(), InvalidAuthKey, models.ErrExpiredToken{})
 				case e.Inner != nil:
 					ctx = context.WithValue(r.Context(), InvalidAuthKey, e.Inner)
 

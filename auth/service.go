@@ -105,7 +105,7 @@ func (s *service) CreateJWT(_ context.Context, user *models.User) (string, error
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, MailxClams{
 		ID: user.ID,
 		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(time.Second * 1).Unix(),
+			ExpiresAt: time.Now().Add(time.Hour * 24).Unix(),
 			IssuedAt:  jwt.TimeFunc().Unix(),
 		},
 	})

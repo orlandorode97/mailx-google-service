@@ -42,13 +42,19 @@ func (e ErrInactiveToken) Error() string {
 	return "the token is inactive."
 }
 
+type ErrInvalidSignature struct{}
+
+func (e ErrInvalidSignature) Error() string {
+	return "the token has an invalid signature."
+}
+
 // ErrorEncoder encodes incoming errors to write the corresponding http status header.
 func ErrorEncoder(_ context.Context, err error, w http.ResponseWriter) {
 
 	switch err.(type) {
 	case ErrAuthUrl:
 		w.WriteHeader(http.StatusServiceUnavailable)
-	case ErrInvalidToken, ErrExpiredToken, ErrMalformedToken, ErrInactiveToken, ErrInvalidCookie:
+	case ErrInvalidSignature, ErrInvalidToken, ErrExpiredToken, ErrMalformedToken, ErrInactiveToken, ErrInvalidCookie:
 		w.WriteHeader(http.StatusUnauthorized)
 	default:
 		w.WriteHeader(http.StatusInternalServerError)
