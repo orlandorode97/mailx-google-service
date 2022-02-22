@@ -10,13 +10,19 @@ import (
 	"net/http"
 	"time"
 
-	jwt "github.com/dgrijalva/jwt-go"
 	kitlog "github.com/go-kit/kit/log"
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/orlandorode97/mailx-google-service"
-	"github.com/orlandorode97/mailx-google-service/models"
-	"github.com/orlandorode97/mailx-google-service/repos"
+	"github.com/orlandorode97/mailx-google-service/pkg/models"
+	"github.com/orlandorode97/mailx-google-service/pkg/repos"
+	"github.com/spf13/viper"
 	"golang.org/x/oauth2"
 )
+
+type MailxClams struct {
+	ID string
+	jwt.StandardClaims
+}
 
 type Service interface {
 	// Creates the oath authorization URL
@@ -54,7 +60,7 @@ func (s *service) GetOauthUrl(_ context.Context) (string, error) {
 
 	url := s.mailxService.GetOauthConfig().AuthCodeURL(state, oauth2.AccessTypeOffline)
 	if url == "" {
-		return "", mailx.ErrAuthUrl{}
+		return "", models.ErrAuthUrl{}
 	}
 	return url, nil
 }
@@ -96,11 +102,14 @@ func (s *service) ConfigGmailServiceUser(ctx context.Context, code string) (*mod
 }
 
 func (s *service) CreateJWT(_ context.Context, user *models.User) (string, error) {
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"id":         user.ID,
-		"expires_at": time.Now().Add(time.Hour * 24).Unix(),
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, MailxClams{
+		ID: user.ID,
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: time.Now().Add(time.Second * 1).Unix(),
+			IssuedAt:  jwt.TimeFunc().Unix(),
+		},
 	})
-	return token.SignedString([]byte(""))
+	return token.SignedString([]byte(viper.GetString("JWT_SIGNING_KEY")))
 }
 
 func (s *service) createUser(ctx context.Context, token *oauth2.Token) (*models.User, error) {
