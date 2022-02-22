@@ -19,7 +19,7 @@ import (
 	"golang.org/x/oauth2"
 )
 
-type MailxClams struct {
+type MailxClaims struct {
 	ID string
 	jwt.StandardClaims
 }
@@ -102,7 +102,7 @@ func (s *service) ConfigGmailServiceUser(ctx context.Context, code string) (*mod
 }
 
 func (s *service) CreateJWT(_ context.Context, user *models.User) (string, error) {
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, MailxClams{
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, MailxClaims{
 		ID: user.ID,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(time.Hour * 24).Unix(),

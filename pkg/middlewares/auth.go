@@ -10,18 +10,9 @@ import (
 	"github.com/spf13/viper"
 )
 
-type MailxClaims struct {
-	ID string
-	jwt.StandardClaims
-}
-
 type contextMailxKey string
 
-var (
-	InvalidAuthKey contextMailxKey = "InvalidAuth"
-)
-
-const MailxJWTHeader string = "mailx_google_auth"
+var InvalidAuthKey contextMailxKey = "InvalidAuth"
 
 func JWTKeyFunc(token *jwt.Token) (interface{}, error) {
 	return []byte(viper.GetString("JWT_SIGNING_KEY")), nil
@@ -36,7 +27,7 @@ func Authentication(next http.Handler) http.Handler {
 			next.ServeHTTP(rw, r.WithContext(ctx))
 		}
 
-		_, err = jwt.ParseWithClaims(cookie.Value, &auth.MailxClams{}, func(t *jwt.Token) (interface{}, error) {
+		_, err = jwt.ParseWithClaims(cookie.Value, &auth.MailxClaims{}, func(t *jwt.Token) (interface{}, error) {
 			return []byte(viper.GetString("JWT_SIGNING_KEY")), nil
 		})
 
