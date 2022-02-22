@@ -6,8 +6,8 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
-	"github.com/orlandorode97/mailx-google-service/models"
-	"github.com/orlandorode97/mailx-google-service/repos"
+	"github.com/orlandorode97/mailx-google-service/pkg/models"
+	"github.com/orlandorode97/mailx-google-service/pkg/repos"
 	"golang.org/x/oauth2"
 )
 
