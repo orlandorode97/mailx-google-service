@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/orlandorode97/mailx-google-service/models"
+	"github.com/orlandorode97/mailx-google-service/pkg/models"
 	"github.com/spf13/viper"
 	"golang.org/x/oauth2"
 )
