@@ -2,9 +2,7 @@ package labels
 
 import (
 	"context"
-	"fmt"
 
-	"github.com/go-kit/kit/auth/jwt"
 	"github.com/go-kit/kit/endpoint"
 )
 
@@ -46,8 +44,6 @@ func MakeDeleteLabelEndpoint(s Service) endpoint.Endpoint {
 
 func MakeGetLabelByIdEndpoint(s Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
-		token := ctx.Value(jwt.JWTContextKey).(string)
-		fmt.Println(token)
 		return nil, nil
 	}
 }
