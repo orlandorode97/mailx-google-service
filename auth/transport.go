@@ -10,14 +10,14 @@ import (
 	kitlog "github.com/go-kit/kit/log"
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/gorilla/mux"
-	"github.com/orlandorode97/mailx-google-service"
+	"github.com/orlandorode97/mailx-google-service/pkg/models"
 )
 
 func MakeHandler(authSvc Service, logger kitlog.Logger) http.Handler {
 	r := mux.NewRouter()
 	e := MakeEndpoints(authSvc)
 	options := []kithttp.ServerOption{
-		kithttp.ServerErrorEncoder(mailx.ErrorEncoder),
+		kithttp.ServerErrorEncoder(models.ErrorEncoder),
 	}
 	r.Methods(http.MethodGet).
 		Path("/login/").
@@ -61,6 +61,7 @@ func encodeCallbackResponse(_ context.Context, w http.ResponseWriter, response i
 		http.Redirect(w, &http.Request{}, redirectUrl, http.StatusPermanentRedirect)
 		return nil
 	}
+
 	resp, _ := response.(callbackResponse)
 	cookie := &http.Cookie{
 		Name:  "mailx_google_auth",

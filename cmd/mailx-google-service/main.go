@@ -15,10 +15,10 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/orlandorode97/mailx-google-service"
 	"github.com/orlandorode97/mailx-google-service/auth"
-	"github.com/orlandorode97/mailx-google-service/google"
 	"github.com/orlandorode97/mailx-google-service/labels"
-	"github.com/orlandorode97/mailx-google-service/repos"
-	repopg "github.com/orlandorode97/mailx-google-service/repos/postgres"
+	"github.com/orlandorode97/mailx-google-service/pkg/google"
+	"github.com/orlandorode97/mailx-google-service/pkg/repos"
+	repopg "github.com/orlandorode97/mailx-google-service/pkg/repos/postgres"
 	"github.com/rs/cors"
 	"github.com/spf13/viper"
 )

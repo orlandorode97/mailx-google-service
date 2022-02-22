@@ -3,7 +3,7 @@ package labels
 import (
 	kitlog "github.com/go-kit/kit/log"
 	"github.com/orlandorode97/mailx-google-service"
-	"github.com/orlandorode97/mailx-google-service/repos"
+	"github.com/orlandorode97/mailx-google-service/pkg/repos"
 )
 
 const (
