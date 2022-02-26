@@ -2,17 +2,18 @@ package auth
 
 import (
 	"context"
-	"crypto/rand"
 	"database/sql"
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"time"
 
-	kitlog "github.com/go-kit/kit/log"
+	"github.com/go-kit/log"
 	"github.com/golang-jwt/jwt/v4"
+	"github.com/google/uuid"
+
 	"github.com/orlandorode97/mailx-google-service"
+	"github.com/orlandorode97/mailx-google-service/pkg/google"
 	"github.com/orlandorode97/mailx-google-service/pkg/models"
 	"github.com/orlandorode97/mailx-google-service/pkg/repos"
 	"github.com/spf13/viper"
@@ -36,16 +37,18 @@ type Service interface {
 }
 
 type service struct {
-	logger       kitlog.Logger
+	logger       log.Logger
 	db           repos.Repository
+	config       google.OAuthConfiguration
 	client       *http.Client
 	mailxService mailx.Service
 }
 
-// NewService creates a new Auth Service.
-func NewService(logger kitlog.Logger, db repos.Repository, mailx mailx.Service) Service {
+// New creates a new Auth Service.
+func New(logger log.Logger, config google.OAuthConfiguration, db repos.Repository, mailx mailx.Service) Service {
 	return &service{
 		logger:       logger,
+		config:       config,
 		db:           db,
 		client:       http.DefaultClient,
 		mailxService: mailx,
@@ -53,12 +56,9 @@ func NewService(logger kitlog.Logger, db repos.Repository, mailx mailx.Service) 
 }
 
 func (s *service) GetOauthUrl(_ context.Context) (string, error) {
-	state, err := randomState()
-	if err != nil {
-		return "", err
-	}
+	state := uuid.NewString()
 
-	url := s.mailxService.GetOauthConfig().AuthCodeURL(state, oauth2.AccessTypeOffline)
+	url := s.config.AuthCodeURL(state, oauth2.AccessTypeOffline)
 	if url == "" {
 		return "", models.ErrAuthUrl{}
 	}
@@ -66,7 +66,7 @@ func (s *service) GetOauthUrl(_ context.Context) (string, error) {
 }
 
 func (s *service) GenerateOauthToken(_ context.Context, code string) (*oauth2.Token, error) {
-	token, err := s.mailxService.GetOauthConfig().Exchange(context.Background(), code)
+	token, err := s.config.Exchange(context.Background(), code)
 	if err != nil {
 		s.logger.Log(
 			"message", "could not create oauth2 token",
@@ -109,6 +109,7 @@ func (s *service) CreateJWT(_ context.Context, user *models.User) (string, error
 			IssuedAt:  jwt.TimeFunc().Unix(),
 		},
 	})
+
 	return token.SignedString([]byte(viper.GetString("JWT_SIGNING_KEY")))
 }
 
@@ -193,15 +194,4 @@ func (s *service) saveAccessToken(ctx context.Context, ID string, token *oauth2.
 	}
 
 	return nil
-}
-
-// random state creates a random string to be placed in the authorization URL.
-func randomState() (string, error) {
-	b := make([]byte, 32)
-	if _, err := rand.Read(b); err != nil {
-		return "", err
-	}
-	state := base64.StdEncoding.EncodeToString(b)
-
-	return state, nil
 }
