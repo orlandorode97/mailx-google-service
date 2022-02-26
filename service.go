@@ -3,7 +3,7 @@ package mailx
 import (
 	"context"
 
-	"github.com/go-kit/kit/log"
+	"github.com/go-kit/log"
 	"golang.org/x/oauth2"
 	"google.golang.org/api/gmail/v1"
 	"google.golang.org/api/option"
@@ -20,8 +20,7 @@ const (
 		- Label Service
 */
 type Service interface {
-	// GetOauthConfig returns the oauth pointer configuration.
-	GetOauthConfig() *oauth2.Config
+
 	// GetGmailService returns a gmail pointer service by the email of the user.
 	GetGmailService(string) *gmail.Service
 	// ConfigGmailService returns a new gmail service instance.
@@ -38,7 +37,7 @@ type service struct {
 	gmailSvcs map[string]*gmail.Service
 }
 
-func NewService(logger log.Logger, config *oauth2.Config) Service {
+func New(logger log.Logger, config *oauth2.Config) Service {
 	return &service{
 		logger:    logger,
 		config:    config,
@@ -48,10 +47,6 @@ func NewService(logger log.Logger, config *oauth2.Config) Service {
 
 func (s *service) AddGmailServiceByID(ID string, gmailSvc *gmail.Service) {
 	s.gmailSvcs[ID] = gmailSvc
-}
-
-func (s *service) GetOauthConfig() *oauth2.Config {
-	return s.config
 }
 
 func (s *service) GetGmailService(ID string) *gmail.Service {
