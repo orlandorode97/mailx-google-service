@@ -20,7 +20,6 @@ const (
 		- Label Service
 */
 type Service interface {
-
 	// GetGmailService returns a gmail pointer service by the email of the user.
 	GetGmailService(string) *gmail.Service
 	// ConfigGmailService returns a new gmail service instance.
