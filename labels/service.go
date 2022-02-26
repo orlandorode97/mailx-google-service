@@ -1,7 +1,7 @@
 package labels
 
 import (
-	kitlog "github.com/go-kit/kit/log"
+	"github.com/go-kit/log"
 	"github.com/orlandorode97/mailx-google-service"
 	"github.com/orlandorode97/mailx-google-service/pkg/repos"
 )
@@ -19,12 +19,12 @@ type Service interface {
 }
 
 type service struct {
-	logger   kitlog.Logger
+	logger   log.Logger
 	repo     repos.Repository
 	mailxSvc mailx.Service
 }
 
-func NewService(logger kitlog.Logger, repo repos.Repository, mailx mailx.Service) Service {
+func NewService(logger log.Logger, repo repos.Repository, mailx mailx.Service) Service {
 	return &service{
 		logger:   logger,
 		repo:     repo,

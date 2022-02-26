@@ -7,13 +7,13 @@ import (
 	"net/http"
 	"net/url"
 
-	kitlog "github.com/go-kit/kit/log"
 	kithttp "github.com/go-kit/kit/transport/http"
+	"github.com/go-kit/log"
 	"github.com/gorilla/mux"
 	"github.com/orlandorode97/mailx-google-service/pkg/models"
 )
 
-func MakeHandler(authSvc Service, logger kitlog.Logger) http.Handler {
+func MakeHandler(authSvc Service, logger log.Logger) http.Handler {
 	r := mux.NewRouter()
 	e := MakeEndpoints(authSvc)
 	options := []kithttp.ServerOption{

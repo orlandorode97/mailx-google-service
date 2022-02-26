@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"os"
 
-	kitlog "github.com/go-kit/kit/log"
+	"github.com/go-kit/log"
 	_ "github.com/lib/pq"
 	_ "github.com/orlandorode97/mailx-google-service/migrations"
 	"github.com/pressly/goose/v3"
@@ -17,7 +17,7 @@ func main() {
 	flag.Parse()
 	command := flag.Args()[0]
 	var db *sql.DB
-	logger := kitlog.With(kitlog.NewLogfmtLogger(os.Stdout), "ts", kitlog.DefaultTimestampUTC)
+	logger := log.With(log.NewLogfmtLogger(os.Stdout), "ts", log.DefaultTimestampUTC)
 
 	flag.Parse()
 	viper.AddConfigPath(".")
