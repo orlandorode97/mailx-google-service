@@ -10,7 +10,7 @@ import (
 	"syscall"
 	"time"
 
-	kitlog "github.com/go-kit/kit/log"
+	"github.com/go-kit/log"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	"github.com/orlandorode97/mailx-google-service"
@@ -24,7 +24,7 @@ import (
 )
 
 func main() {
-	logger := kitlog.With(kitlog.NewLogfmtLogger(os.Stdout), "ts", kitlog.DefaultTimestampUTC)
+	logger := log.With(log.NewLogfmtLogger(os.Stdout), "ts", log.DefaultTimestampUTC)
 	err := setViperConfig()
 	if err != nil {
 		logger.Log(
@@ -48,13 +48,13 @@ func main() {
 
 	oauthConfig := google.NewConfig()
 
-	mailxSvc := mailx.NewService(logger, oauthConfig)
+	mailxSvc := mailx.New(logger, oauthConfig)
 
 	var labelsSvc labels.Service
 	labelsSvc = labels.NewService(logger, repo, mailxSvc)
 
 	var authSvc auth.Service
-	authSvc = auth.NewService(logger, repo, mailxSvc)
+	authSvc = auth.New(logger, oauthConfig, repo, mailxSvc)
 
 	mux := http.NewServeMux()
 	mux.Handle("/labels/", labels.MakeHandler(labelsSvc, logger))
@@ -76,7 +76,7 @@ func main() {
 }
 
 // listenAndServe gracefully shutdowns the mailx-google-service
-func listenAndServe(server *http.Server, logger kitlog.Logger) {
+func listenAndServe(server *http.Server, logger log.Logger) {
 	connClosed := make(chan struct{})
 	go func() {
 		sigint := make(chan os.Signal, 1)

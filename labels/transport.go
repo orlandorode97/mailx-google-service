@@ -5,15 +5,15 @@ import (
 	"encoding/json"
 	"net/http"
 
-	kitlog "github.com/go-kit/kit/log"
 	kithttp "github.com/go-kit/kit/transport/http"
+	"github.com/go-kit/log"
 	"github.com/gorilla/mux"
 	"github.com/orlandorode97/mailx-google-service/pkg/middlewares"
 	"github.com/orlandorode97/mailx-google-service/pkg/models"
 )
 
 // MakeHandler mounts the labels endpoints
-func MakeHandler(labelService Service, logger kitlog.Logger) http.Handler {
+func MakeHandler(labelService Service, logger log.Logger) http.Handler {
 	r := mux.NewRouter()
 
 	e := MakeEndpoints(labelService)
