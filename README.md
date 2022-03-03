@@ -25,12 +25,15 @@ git clone https://github.com/orlandorode97/mailx-google-service.git
 
 `mailx-google-services` requires a `.env` at the root of the project with the following variables:
 ```sh
-POSTGRES_HOST=
-POSTGRES_PORT=
 POSTGRES_USER=
 POSTGRES_PASSWORD=
-POSTGRES_DB_NAME=
-POSTGRES_SSL_MODE=
+POSTGRES_HOST=mailx-google-service-db-1
+POSTGRES_HOST_GOOSE=localhost
+POSTGRES_PORT=5432
+POSTGRES_DB_NAME=postgres
+POSTGRES_SSL_MODE=disable
+POSTGRES_DB_SCHEMA=public
+
 
 GOOGLE_REDIRECT_URL=
 GOOGLE_CLIENT_ID=
