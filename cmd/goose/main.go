@@ -67,7 +67,7 @@ func buildDSN() string {
 	return fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=%s",
 		viper.GetString("POSTGRES_USER"),
 		viper.GetString("POSTGRES_PASSWORD"),
-		viper.GetString("POSTGRES_HOST"),
+		viper.GetString("POSTGRES_HOST_GOOSE"),
 		viper.GetInt("POSTGRES_PORT"),
 		viper.GetString("POSTGRES_DB_NAME"),
 		viper.GetString("POSTGRES_SSL_MODE"),

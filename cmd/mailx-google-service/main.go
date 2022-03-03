@@ -46,6 +46,15 @@ func main() {
 
 	repo := repopg.New(sqlx.NewDb(db, "postgres"))
 
+	if repo == nil {
+		logger.Log(
+			"message", "it was not possible to open a new connection with the database.",
+			"err", err.Error(),
+			"severity", "CRITICAL",
+		)
+		return
+	}
+
 	oauthConfig := google.NewConfig()
 
 	mailxSvc := mailx.New(logger, oauthConfig)
