@@ -16,6 +16,10 @@ type repository struct {
 }
 
 func New(db *sqlx.DB) repos.Repository {
+	if err := db.Ping(); err != nil {
+		return nil
+	}
+
 	return &repository{
 		db: db,
 	}

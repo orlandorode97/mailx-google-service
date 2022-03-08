@@ -14,7 +14,7 @@ services:
     env_file:
       - .env
     volumes:
-      - ./data/db:/var/lib/postgresql/data
+      - "dbdata:/var/lib/postgresql/data"
     restart: always
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
@@ -23,6 +23,8 @@ services:
       POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256"
     ports:
       - 5432:5432
+volumes:
+  dbdata:
 
 
     
