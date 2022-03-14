@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"net/url"
 
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/go-kit/log"
@@ -19,8 +18,17 @@ func MakeHandler(authSvc Service, logger log.Logger) http.Handler {
 	options := []kithttp.ServerOption{
 		kithttp.ServerErrorEncoder(models.ErrorEncoder),
 	}
+
 	r.Methods(http.MethodGet).
-		Path("/login/").
+		Path("/auth/logout/").
+		Handler(kithttp.NewServer(
+			e.LogoutEndpoint,
+			decodeLogoutRequest,
+			encodeLogoutResponse,
+			options...,
+		))
+	r.Methods(http.MethodGet).
+		Path("/auth/login/").
 		Handler(kithttp.NewServer(
 			e.GetOauthUrlEndpoint,
 			decodeLoginRequest,
@@ -28,7 +36,7 @@ func MakeHandler(authSvc Service, logger log.Logger) http.Handler {
 			options...,
 		))
 	r.Methods(http.MethodGet).
-		Path("/login/callback/").
+		Path("/auth/callback/").
 		Handler(kithttp.NewServer(
 			e.GetOauthCallbackEndpoint,
 			decodeCallbackRequest,
@@ -36,6 +44,23 @@ func MakeHandler(authSvc Service, logger log.Logger) http.Handler {
 			options...,
 		))
 	return r
+}
+
+func decodeLogoutRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	return logoutRequest{}, nil
+}
+
+func encodeLogoutResponse(_ context.Context, w http.ResponseWriter, response interface{}) error {
+	cookie := &http.Cookie{
+		Name:     "mailx_google_auth",
+		Value:    "",
+		Path:     "/",
+		HttpOnly: true,
+		MaxAge:   -1,
+	}
+
+	w.Header().Add("Set-Cookie", cookie.String())
+	return nil
 }
 
 func decodeLoginRequest(_ context.Context, r *http.Request) (interface{}, error) {
@@ -64,18 +89,15 @@ func encodeCallbackResponse(_ context.Context, w http.ResponseWriter, response i
 
 	resp, _ := response.(callbackResponse)
 	cookie := &http.Cookie{
-		Name:  "mailx_google_auth",
-		Value: resp.JWT,
+		Name:     "mailx_google_auth",
+		Value:    resp.JWT,
+		Path:     "/",
+		HttpOnly: true,
 	}
 
-	cookieStr, err := url.QueryUnescape(cookie.String())
-	if err != nil {
-		redirectUrl = fmt.Sprintf("http://localhost:3000/error?error_message=%s", err.Error())
-		http.Redirect(w, &http.Request{}, redirectUrl, http.StatusPermanentRedirect)
-		return nil
-	}
+	w.Header().Add("Set-Cookie", cookie.String())
 
-	redirectUrl = fmt.Sprintf("%s?%s", "http://localhost:3000/success", cookieStr)
+	redirectUrl = "http://localhost:3000/success?mailx_google_success=true"
 	http.Redirect(w, &http.Request{}, redirectUrl, http.StatusPermanentRedirect)
 	return nil
 }

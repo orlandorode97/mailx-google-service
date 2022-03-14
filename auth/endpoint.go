@@ -7,14 +7,22 @@ import (
 )
 
 type Endpoints struct {
+	LogoutEndpoint           endpoint.Endpoint
 	GetOauthUrlEndpoint      endpoint.Endpoint
 	GetOauthCallbackEndpoint endpoint.Endpoint
 }
 
 func MakeEndpoints(s Service) Endpoints {
 	return Endpoints{
+		LogoutEndpoint:           MakeLogoutEndpoint(s),
 		GetOauthUrlEndpoint:      MakeGetOauthUrlEndpoint(s),
 		GetOauthCallbackEndpoint: MakeGetOauthCallbackEndpoint(s),
+	}
+}
+
+func MakeLogoutEndpoint(s Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		return logoutResponse{}, nil
 	}
 }
 
@@ -28,6 +36,7 @@ func MakeGetOauthUrlEndpoint(s Service) endpoint.Endpoint {
 		return loginResponse{AuthUrl: url}, nil
 	}
 }
+
 func MakeGetOauthCallbackEndpoint(s Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(callbackRequest)
@@ -42,6 +51,9 @@ func MakeGetOauthCallbackEndpoint(s Service) endpoint.Endpoint {
 		return callbackResponse{JWT: jwt}, nil
 	}
 }
+
+type logoutResponse struct{}
+type logoutRequest struct{}
 
 type loginRequest struct{}
 type loginResponse struct {
