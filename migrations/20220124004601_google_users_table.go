@@ -14,12 +14,12 @@ func upGoogleUsersTableGo(tx *sql.Tx) error {
 	// This code is executed when the migration is applied.
 	_, err := tx.Exec(`
 		CREATE TABLE IF NOT EXISTS users(
-			google_id CHAR(50) PRIMARY KEY,
-			name CHAR(50) NOT NULL,
-			given_name CHAR(50) NOT NULL,
-			family_name CHAR(50) NOT NULL,
-			picture CHAR(100) NOT NULL,
-			locale CHAR(10),
+			google_id VARCHAR(50) PRIMARY KEY,
+			name VARCHAR(50) NOT NULL,
+			given_name VARCHAR(50) NOT NULL,
+			family_name VARCHAR(50) NOT NULL,
+			picture VARCHAR(100) NOT NULL,
+			locale VARCHAR(10),
 			created_at TIMESTAMP NOT NULL DEFAULT now(),
 			updated_at TIMESTAMP NOT NULL DEFAULT now()
 		);
