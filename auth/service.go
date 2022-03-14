@@ -38,18 +38,18 @@ type Service interface {
 
 type service struct {
 	logger       log.Logger
-	db           repos.Repository
+	repo         repos.Repository
 	config       google.OAuthConfiguration
 	client       *http.Client
 	mailxService mailx.Service
 }
 
 // New creates a new Auth Service.
-func New(logger log.Logger, config google.OAuthConfiguration, db repos.Repository, mailx mailx.Service) Service {
+func New(logger log.Logger, config google.OAuthConfiguration, repo repos.Repository, mailx mailx.Service) Service {
 	return &service{
 		logger:       logger,
 		config:       config,
-		db:           db,
+		repo:         repo,
 		client:       http.DefaultClient,
 		mailxService: mailx,
 	}
@@ -126,13 +126,13 @@ func (s *service) createUser(ctx context.Context, token *oauth2.Token) (*models.
 		return nil, err
 	}
 
-	_, err = s.db.GetUserByID(ctx, user.ID)
+	_, err = s.repo.GetUserByID(ctx, user.ID)
 	if err == sql.ErrNoRows {
 		s.logger.Log(
 			"message", fmt.Sprintf("creating user %s with ID %s", user.GivenName, user.ID),
 			"severity", "INFO",
 		)
-		if err = s.db.CreateUser(ctx, user); err != nil {
+		if err = s.repo.CreateUser(ctx, user); err != nil {
 			s.logger.Log(
 				"message", fmt.Sprintf("error creating user %s with ID %s", user.GivenName, user.ID),
 				"error", err.Error(),
@@ -161,13 +161,13 @@ func (s *service) createUser(ctx context.Context, token *oauth2.Token) (*models.
 }
 
 func (s *service) saveAccessToken(ctx context.Context, ID string, token *oauth2.Token) error {
-	_, err := s.db.GetTokenByUserId(ctx, ID)
+	_, err := s.repo.GetTokenByUserId(ctx, ID)
 	if err == sql.ErrNoRows {
 		s.logger.Log(
 			"message", fmt.Sprintf("saving token for the user with ID %s", ID),
 			"severity", "INFO",
 		)
-		if err = s.db.SaveAccessToken(ctx, ID, token); err != nil {
+		if err = s.repo.SaveAccessToken(ctx, ID, token); err != nil {
 			s.logger.Log(
 				"message", fmt.Sprintf("error saving token for the userwith ID %s", ID),
 				"error", err.Error(),
@@ -189,7 +189,7 @@ func (s *service) saveAccessToken(ctx context.Context, ID string, token *oauth2.
 		return err
 	}
 
-	if err := s.db.UpdateAccessToken(ctx, ID, token); err != nil {
+	if err := s.repo.UpdateAccessToken(ctx, ID, token); err != nil {
 		return err
 	}
 

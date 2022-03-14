@@ -317,7 +317,7 @@ func TestConfigGmailServiceUser(t *testing.T) {
 			svc := &service{
 				logger:       log.NewLogfmtLogger(os.Stdin),
 				config:       config,
-				db:           db,
+				repo:         db,
 				client:       client,
 				mailxService: mockMailxService,
 			}
@@ -449,7 +449,7 @@ func TestCreateUser(t *testing.T) {
 			db.On("CreateUser", test.ctx, test.expectedUser).Return(test.createUserErr)
 			logger := log.NewLogfmtLogger(os.Stdin)
 			svc := service{
-				db:     db,
+				repo:   db,
 				logger: logger,
 				client: client,
 			}
@@ -540,7 +540,7 @@ func TestSaveAccessToken(t *testing.T) {
 			db.On("UpdateAccessToken", test.ctx, test.user.ID, test.token).Return(test.updateAccessTokenErr)
 			logger := log.NewLogfmtLogger(os.Stdin)
 			svc := service{
-				db:     db,
+				repo:   db,
 				logger: logger,
 			}
 			err := svc.saveAccessToken(test.ctx, test.user.ID, test.token)
