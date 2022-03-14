@@ -72,7 +72,7 @@ func (s *service) CreateGmailService(token *oauth2.Token) (*gmail.Service, error
 		)
 		return nil, err
 	}
-	return gmailSvc, err
+	return gmailSvc, nil
 }
 
 func (s *service) RecreateGmailService(ctx context.Context, ID string) (*gmail.Service, error) {
