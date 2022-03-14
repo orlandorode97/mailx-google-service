@@ -38,6 +38,11 @@ func (m MockMailxService) AddGmailServiceByID(ID string, gmailSvc *gmail.Service
 	m.Called(ID, gmailSvc)
 }
 
+func (m MockMailxService) RecreateGmailService(ctx context.Context, ID string) (*gmail.Service, error) {
+	args := m.Called(ctx, ID)
+	return args.Get(0).(*gmail.Service), args.Error(1)
+}
+
 type MockOAuthConfig struct {
 	mock.Mock
 }
