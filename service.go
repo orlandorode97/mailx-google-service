@@ -35,12 +35,12 @@ type service struct {
 	logger log.Logger
 	//`config` keeps the oauth2 configuration that holds google_client_id, client_secret, and other needed things.
 	config *oauth2.Config
-	repo   repos.Repository
+	repo   repos.TokenRepository
 	//Map that holds google user ID as a key and stores a pointer gmail service.
 	gmailSvcs map[string]*gmail.Service
 }
 
-func New(logger log.Logger, repo repos.Repository, config *oauth2.Config) Service {
+func New(logger log.Logger, repo repos.TokenRepository, config *oauth2.Config) Service {
 	return &service{
 		logger:    logger,
 		config:    config,

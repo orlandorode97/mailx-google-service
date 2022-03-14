@@ -20,10 +20,18 @@ func BuildDSN() string {
 		viper.GetString("POSTGRES_DB_SCHEMA"))
 }
 
-type Repository interface {
+type UserRepository interface {
 	CreateUser(context.Context, *models.User) error
 	GetUserByID(context.Context, string) (*models.User, error)
+}
+
+type TokenRepository interface {
 	GetTokenByUserId(context.Context, string) (*models.Token, error)
 	SaveAccessToken(context.Context, string, *oauth2.Token) error
 	UpdateAccessToken(context.Context, string, *oauth2.Token) error
+}
+
+type Repository interface {
+	UserRepository
+	TokenRepository
 }

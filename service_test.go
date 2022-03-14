@@ -23,16 +23,6 @@ type MockDB struct {
 	mock.Mock
 }
 
-func (db MockDB) CreateUser(ctx context.Context, user *models.User) error {
-	args := db.Called(ctx, user)
-	return args.Error(0)
-}
-
-func (db MockDB) GetUserByID(ctx context.Context, ID string) (*models.User, error) {
-	args := db.Called(ctx, ID)
-	return args.Get(0).(*models.User), args.Error(1)
-}
-
 func (db MockDB) GetTokenByUserId(ctx context.Context, ID string) (*models.Token, error) {
 	args := db.Called(ctx, ID)
 	return args.Get(0).(*models.Token), args.Error(1)
