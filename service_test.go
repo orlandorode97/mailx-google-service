@@ -90,7 +90,7 @@ func TestGetGmailService(t *testing.T) {
 				logger:    logger,
 				gmailSvcs: test.gmailSvcs,
 			}
-			gmailSvc := svc.GetGmailService(test.userId)
+			gmailSvc := svc.GetGmailService(test.userId, GmailSvc)
 			test.assertGmailSvc(t, gmailSvc)
 		})
 	}

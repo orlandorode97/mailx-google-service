@@ -37,15 +37,15 @@ func MakeHandler(labelService Service, logger log.Logger) http.Handler {
 			options...,
 		))
 	r.Methods(http.MethodGet).
-		Path("/labels/{id:[0-9a-zA-Z\\W]+|}").
+		Path("/labels/").
 		Handler(kithttp.NewServer(
-			e.GetLabelByIdEndpoint,
+			e.GetLabelsEndpoint,
 			decodeLabelsRequest,
 			encodeLabelsResponse,
 			options...,
 		))
 	r.Methods(http.MethodGet).
-		Path("/labels/").
+		Path("/labels/{id:[0-9a-zA-Z\\W]+|}").
 		Handler(kithttp.NewServer(
 			e.GetLabelsEndpoint,
 			decodeLabelsRequest,
@@ -63,16 +63,26 @@ func MakeHandler(labelService Service, logger log.Logger) http.Handler {
 	return middlewares.Authentication(r)
 }
 
-type labelsRequest struct{}
-
 func decodeLabelsRequest(_ context.Context, r *http.Request) (interface{}, error) {
-	if err, ok := r.Context().Value(middlewares.InvalidAuthKey).(error); ok {
+	if err, ok := r.Context().Value(middlewares.InvalidAuthKey).(error); ok && err != nil {
 		return nil, err
 	}
 
-	return labelsRequest{}, nil
+	userID, ok := r.Context().Value(middlewares.UserIDKey).(string)
+	if !ok {
+		// return custom error
+		return nil, nil
+	}
+
+	return getLabelsRequest{
+		UserID: userID,
+	}, nil
 }
 
 func encodeLabelsResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
 	return json.NewEncoder(w).Encode(response)
+}
+
+type errorer interface {
+	error() error
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/go-kit/kit/endpoint"
+	"google.golang.org/api/gmail/v1"
 )
 
 type Endpoints struct {
@@ -50,7 +51,15 @@ func MakeGetLabelByIdEndpoint(s Service) endpoint.Endpoint {
 
 func MakeGetLabelsEndpoint(s Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
-		return nil, nil
+		req := request.(getLabelsRequest)
+		labels, err := s.GetLabels(req.UserID)
+		if err != nil {
+			return getLabelsResponse{Err: err}, nil
+		}
+
+		return getLabelsResponse{
+			Labels: labels,
+		}, nil
 	}
 }
 
@@ -58,4 +67,17 @@ func MakeUpdateLabelEndpoint(s Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		return nil, nil
 	}
+}
+
+type getLabelsRequest struct {
+	UserID string
+}
+
+type getLabelsResponse struct {
+	Labels []*gmail.Label `json:"labels"`
+	Err    error          `json:"error,omitempty"`
+}
+
+func (g getLabelsResponse) error() error {
+	return g.Err
 }

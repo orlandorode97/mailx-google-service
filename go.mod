@@ -3,7 +3,9 @@ module github.com/orlandorode97/mailx-google-service
 go 1.17
 
 require (
+	github.com/davecgh/go-spew v1.1.1
 	github.com/go-kit/kit v0.12.0
+	github.com/go-kit/log v0.2.0
 	github.com/golang-jwt/jwt/v4 v4.0.0
 	github.com/google/uuid v1.3.0
 	github.com/gorilla/mux v1.8.0
@@ -19,9 +21,7 @@ require (
 
 require (
 	cloud.google.com/go/compute v0.1.0 // indirect
-	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
-	github.com/go-kit/log v0.2.0 // indirect
 	github.com/go-logfmt/logfmt v0.5.1 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
