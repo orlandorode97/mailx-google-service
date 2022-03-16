@@ -26,7 +26,7 @@ const (
 	SettingsSvc
 	// Returns gmailSvc.Users.Threads service.
 	ThreadsSvc
-	// Returns the whole gmailSvc
+	// Returns the whole gmailSvc.
 	GmailSvc
 )
 

@@ -24,9 +24,9 @@ type MockMailxService struct {
 	mock.Mock
 }
 
-func (m MockMailxService) GetGmailService(ID string) *gmail.Service {
-	args := m.Called(ID)
-	return args.Get(0).(*gmail.Service)
+func (m MockMailxService) GetGmailService(userId string, typeSvc int) interface{} {
+	args := m.Called(userId, typeSvc)
+	return args.Get(0)
 }
 
 func (m MockMailxService) CreateGmailService(token *oauth2.Token) (*gmail.Service, error) {
@@ -34,8 +34,9 @@ func (m MockMailxService) CreateGmailService(token *oauth2.Token) (*gmail.Servic
 	return args.Get(0).(*gmail.Service), args.Error(1)
 }
 
-func (m MockMailxService) AddGmailServiceByID(ID string, gmailSvc *gmail.Service) {
-	m.Called(ID, gmailSvc)
+func (m MockMailxService) AddGmailServiceByID(ID string, gmailSvc *gmail.Service) *gmail.Service {
+	args := m.Called(ID, gmailSvc)
+	return args.Get(0).(*gmail.Service)
 }
 
 func (m MockMailxService) RecreateGmailService(ctx context.Context, ID string) (*gmail.Service, error) {
@@ -305,7 +306,7 @@ func TestConfigGmailServiceUser(t *testing.T) {
 
 			mockMailxService := MockMailxService{}
 			mockMailxService.On("CreateGmailService", test.token).Return(test.gmailSvc, test.gmailSvcErr)
-			mockMailxService.On("AddGmailServiceByID", test.expectedUser.ID, test.gmailSvc)
+			mockMailxService.On("AddGmailServiceByID", test.expectedUser.ID, test.gmailSvc).Return(test.gmailSvc)
 
 			client := NewTestClient(func(req *http.Request) *http.Response {
 				return &http.Response{
