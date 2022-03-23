@@ -4,30 +4,11 @@ import (
 	"context"
 
 	"github.com/go-kit/log"
+	"github.com/orlandorode97/mailx-google-service/pkg/google"
 	"github.com/orlandorode97/mailx-google-service/pkg/repos"
 	"golang.org/x/oauth2"
 	"google.golang.org/api/gmail/v1"
 	"google.golang.org/api/option"
-)
-
-// Type of service to return by GetGmailService.
-const (
-	// Returns gmailSvc.Users service.
-	UsersSvc = iota + 1
-	// Returns gmailSvc.Users.Labels service.
-	LabelSvc
-	// Returns gmailSvc.Users.Drafts service.
-	DraftsSvc
-	// Returns gmailSvc.Users.History service.
-	HistorySvc
-	// Returns gmailSvc.Users.Messages service.
-	MessagesSvc
-	// Returns gmailSvc.Users.Settings service.
-	SettingsSvc
-	// Returns gmailSvc.Users.Threads service.
-	ThreadsSvc
-	// Returns the whole gmailSvc.
-	GmailSvc
 )
 
 const (
@@ -43,19 +24,19 @@ const (
 
 type Creator interface {
 	// CreateGmailService returns a new gmail service instance.
-	CreateGmailService(*oauth2.Token) (*gmail.Service, error)
+	CreateGmailService(*oauth2.Token) (google.Service, error)
 	// RecreateGmailService returns a new gmail service when a service is not attached to a user
-	RecreateGmailService(context.Context, string) (*gmail.Service, error)
+	RecreateGmailService(context.Context, string) (google.Service, error)
 }
 
 type Getter interface {
-	// GetGmailService returns a interface of any gmail service such as Labels, Users, Drafts etc of the user based on typeSvc parameter.
-	GetGmailService(string, int) interface{}
+	// GetGmailService returns a pointer of gmail service.
+	GetGmailService(string) google.Service
 }
 
 type Setter interface {
 	// AddGmailServiceByID creates a new entry of a pointer gmail service by google user ID.
-	AddGmailServiceByID(string, *gmail.Service) *gmail.Service
+	AddGmailServiceByID(string, google.Service) google.Service
 }
 
 type Service interface {
@@ -70,7 +51,7 @@ type service struct {
 	config *oauth2.Config
 	repo   repos.TokenRepository
 	//Map that holds google user ID as a key and stores a pointer gmail service.
-	gmailSvcs map[string]*gmail.Service
+	gmailSvcs map[string]google.Service
 }
 
 func New(logger log.Logger, repo repos.TokenRepository, config *oauth2.Config) Service {
@@ -78,41 +59,24 @@ func New(logger log.Logger, repo repos.TokenRepository, config *oauth2.Config) S
 		logger:    logger,
 		config:    config,
 		repo:      repo,
-		gmailSvcs: make(map[string]*gmail.Service),
+		gmailSvcs: make(map[string]google.Service),
 	}
 }
 
-func (s *service) AddGmailServiceByID(ID string, gmailSvc *gmail.Service) *gmail.Service {
-	s.gmailSvcs[ID] = gmailSvc
+func (s *service) AddGmailServiceByID(userID string, gmailSvc google.Service) google.Service {
+	s.gmailSvcs[userID] = gmailSvc
 	return gmailSvc
 }
 
-func (s *service) GetGmailService(ID string, typeSvc int) interface{} {
-	gmailSvc, ok := s.gmailSvcs[ID]
-	if !ok {
-		return nil
-	}
-	switch typeSvc {
-	case UsersSvc:
-		return gmailSvc.Users
-	case LabelSvc:
-		return gmailSvc.Users.Labels
-	case DraftsSvc:
-		return gmailSvc.Users.Drafts
-	case HistorySvc:
-		return gmailSvc.Users.History
-	case MessagesSvc:
-		return gmailSvc.Users.Messages
-	case SettingsSvc:
-		return gmailSvc.Users.Settings
-	case ThreadsSvc:
-		return gmailSvc.Users.Threads
-	default:
+func (s *service) GetGmailService(userID string) google.Service {
+	if gmailSvc, ok := s.gmailSvcs[userID]; ok {
 		return gmailSvc
 	}
+
+	return nil
 }
 
-func (s *service) CreateGmailService(token *oauth2.Token) (*gmail.Service, error) {
+func (s *service) CreateGmailService(token *oauth2.Token) (google.Service, error) {
 	ctx := context.Background()
 	gmailSvc, err := gmail.NewService(ctx, option.WithTokenSource(s.config.TokenSource(ctx, token)))
 	if err != nil {
@@ -123,11 +87,14 @@ func (s *service) CreateGmailService(token *oauth2.Token) (*gmail.Service, error
 		)
 		return nil, err
 	}
-	return gmailSvc, nil
+
+	svc := s.hydrateServices(gmailSvc)
+
+	return svc, nil
 }
 
-func (s *service) RecreateGmailService(ctx context.Context, ID string) (*gmail.Service, error) {
-	token, err := s.repo.GetTokenByUserId(ctx, ID)
+func (s *service) RecreateGmailService(ctx context.Context, userID string) (google.Service, error) {
+	token, err := s.repo.GetTokenByUserId(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -138,9 +105,22 @@ func (s *service) RecreateGmailService(ctx context.Context, ID string) (*gmail.S
 		TokenType:    token.TokenType,
 		Expiry:       token.TokenExpiration,
 	})
+
 	if err != nil {
 		return nil, err
 	}
 
-	return s.AddGmailServiceByID(ID, svc), nil
+	return s.AddGmailServiceByID(userID, svc), nil
+}
+
+func (s *service) hydrateServices(svc *gmail.Service) google.Service {
+	return &google.GmailService{
+		Users:    svc.Users,
+		Labels:   google.NewLabelsService(svc.Users.Labels),
+		Messages: google.NewMessagesService(svc.Users.Messages),
+		Drafts:   &google.DraftsService{},
+		History:  &google.HistoryService{},
+		Settings: &google.SettingsService{},
+		Threads:  &google.ThreadsService{},
+	}
 }
