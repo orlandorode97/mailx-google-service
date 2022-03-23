@@ -17,31 +17,30 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"golang.org/x/oauth2"
-	"google.golang.org/api/gmail/v1"
 )
 
 type MockMailxService struct {
 	mock.Mock
 }
 
-func (m MockMailxService) GetGmailService(userId string, typeSvc int) interface{} {
-	args := m.Called(userId, typeSvc)
-	return args.Get(0)
+func (m MockMailxService) GetGmailService(userID string) google.Service {
+	args := m.Called(userID)
+	return args.Get(0).(google.Service)
 }
 
-func (m MockMailxService) CreateGmailService(token *oauth2.Token) (*gmail.Service, error) {
+func (m MockMailxService) CreateGmailService(token *oauth2.Token) (google.Service, error) {
 	args := m.Called(token)
-	return args.Get(0).(*gmail.Service), args.Error(1)
+	return args.Get(0).(google.Service), args.Error(1)
 }
 
-func (m MockMailxService) AddGmailServiceByID(ID string, gmailSvc *gmail.Service) *gmail.Service {
-	args := m.Called(ID, gmailSvc)
-	return args.Get(0).(*gmail.Service)
+func (m MockMailxService) AddGmailServiceByID(userID string, gmailSvc google.Service) google.Service {
+	args := m.Called(userID, gmailSvc)
+	return args.Get(0).(google.Service)
 }
 
-func (m MockMailxService) RecreateGmailService(ctx context.Context, ID string) (*gmail.Service, error) {
-	args := m.Called(ctx, ID)
-	return args.Get(0).(*gmail.Service), args.Error(1)
+func (m MockMailxService) RecreateGmailService(ctx context.Context, userID string) (google.Service, error) {
+	args := m.Called(ctx, userID)
+	return args.Get(0).(google.Service), args.Error(1)
 }
 
 type MockOAuthConfig struct {
@@ -210,7 +209,7 @@ func TestConfigGmailServiceUser(t *testing.T) {
 		code            string
 		token           *oauth2.Token
 		tokenErr        error
-		gmailSvc        *gmail.Service
+		gmailSvc        google.Service
 		gmailSvcErr     error
 		expectedUser    *models.User
 		expectedUserErr error
@@ -225,7 +224,7 @@ func TestConfigGmailServiceUser(t *testing.T) {
 			token: &oauth2.Token{
 				AccessToken: "random access token",
 			},
-			gmailSvc: &gmail.Service{},
+			gmailSvc: &google.GmailService{},
 			expectedUser: &models.User{
 				ID:   "1",
 				Name: "Orlando",
@@ -239,7 +238,7 @@ func TestConfigGmailServiceUser(t *testing.T) {
 			code:         "12345678",
 			token:        nil,
 			tokenErr:     errors.New("error generating the oauth token access."),
-			gmailSvc:     &gmail.Service{},
+			gmailSvc:     &google.GmailService{},
 			expectedUser: &models.User{},
 			assertErr:    assert.NotNil,
 			assertEqual:  assert.NotEqual,
@@ -251,7 +250,7 @@ func TestConfigGmailServiceUser(t *testing.T) {
 			token: &oauth2.Token{
 				AccessToken: "random access token",
 			},
-			gmailSvc:     &gmail.Service{},
+			gmailSvc:     &google.GmailService{},
 			gmailSvcErr:  errors.New("error gmail service cannot be configured."),
 			expectedUser: &models.User{},
 			assertErr:    assert.NotNil,
@@ -264,7 +263,7 @@ func TestConfigGmailServiceUser(t *testing.T) {
 			token: &oauth2.Token{
 				AccessToken: "random access token",
 			},
-			gmailSvc: &gmail.Service{},
+			gmailSvc: &google.GmailService{},
 			expectedUser: &models.User{
 				ID:   "1",
 				Name: "Orlando",
@@ -280,7 +279,7 @@ func TestConfigGmailServiceUser(t *testing.T) {
 			token: &oauth2.Token{
 				AccessToken: "random access token",
 			},
-			gmailSvc: &gmail.Service{},
+			gmailSvc: &google.GmailService{},
 			expectedUser: &models.User{
 				ID:   "1",
 				Name: "Orlando",

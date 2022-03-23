@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/go-kit/log"
+	"github.com/orlandorode97/mailx-google-service/pkg/google"
 	"github.com/orlandorode97/mailx-google-service/pkg/models"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -43,9 +44,9 @@ func TestAddGmailServiceByID(t *testing.T) {
 		logger := log.NewLogfmtLogger(os.Stdout)
 		svc := &service{
 			logger:    logger,
-			gmailSvcs: make(map[string]*gmail.Service),
+			gmailSvcs: make(map[string]google.Service),
 		}
-		svc.AddGmailServiceByID("1", &gmail.Service{})
+		svc.AddGmailServiceByID("1", &google.GmailService{})
 		assert.Len(t, svc.gmailSvcs, 1)
 	})
 }
@@ -53,30 +54,26 @@ func TestAddGmailServiceByID(t *testing.T) {
 func TestGetGmailService(t *testing.T) {
 	testscases := []struct {
 		name           string
-		userId         string
-		gmailSvcs      map[string]*gmail.Service
+		userID         string
+		gmailSvcs      map[string]google.Service
 		assertGmailSvc func(t assert.TestingT, object interface{}, msgAndArgs ...interface{}) bool
 	}{
 		{
 			name:   "success - gmail service is returned by user id",
-			userId: "1",
-			gmailSvcs: map[string]*gmail.Service{
-				"1": {
-					BasePath:  "",
-					UserAgent: "",
-					Users:     &gmail.UsersService{},
+			userID: "1",
+			gmailSvcs: map[string]google.Service{
+				"1": &google.GmailService{
+					Users: &gmail.UsersService{},
 				},
 			},
 			assertGmailSvc: assert.NotNil,
 		},
 		{
 			name:   "failure - cannot find gmail service attached by user id ",
-			userId: "1",
-			gmailSvcs: map[string]*gmail.Service{
-				"2": {
-					BasePath:  "",
-					UserAgent: "",
-					Users:     &gmail.UsersService{},
+			userID: "1",
+			gmailSvcs: map[string]google.Service{
+				"2": &google.GmailService{
+					Users: &gmail.UsersService{},
 				},
 			},
 			assertGmailSvc: assert.Nil,
@@ -90,7 +87,7 @@ func TestGetGmailService(t *testing.T) {
 				logger:    logger,
 				gmailSvcs: test.gmailSvcs,
 			}
-			gmailSvc := svc.GetGmailService(test.userId, GmailSvc)
+			gmailSvc := svc.GetGmailService(test.userID)
 			test.assertGmailSvc(t, gmailSvc)
 		})
 	}
@@ -113,7 +110,7 @@ func TestRecreateGmailService(t *testing.T) {
 	testcases := []struct {
 		name      string
 		ctx       context.Context
-		userId    string
+		userID    string
 		token     *models.Token
 		errToken  error
 		errSvc    error
@@ -123,7 +120,7 @@ func TestRecreateGmailService(t *testing.T) {
 		{
 			name:   "success - gmail service recreated",
 			ctx:    context.Background(),
-			userId: "1",
+			userID: "1",
 			token: &models.Token{
 				AccessToken:     "access-token",
 				RefreshToken:    "refresh-token",
@@ -136,7 +133,7 @@ func TestRecreateGmailService(t *testing.T) {
 		{
 			name:      "failure - get token by id fails",
 			ctx:       context.Background(),
-			userId:    "1",
+			userID:    "1",
 			token:     nil,
 			errToken:  errors.New("database is not online"),
 			assertErr: assert.NotNil,
@@ -145,7 +142,7 @@ func TestRecreateGmailService(t *testing.T) {
 		{
 			name:   "failure - gmail cannot be recreated",
 			ctx:    context.Background(),
-			userId: "1",
+			userID: "1",
 			token: &models.Token{
 				AccessToken:     "access-token",
 				RefreshToken:    "refresh-token",
@@ -161,10 +158,10 @@ func TestRecreateGmailService(t *testing.T) {
 	for _, test := range testcases {
 		t.Run(test.name, func(t *testing.T) {
 			db := MockDB{}
-			db.On("GetTokenByUserId", test.ctx, test.userId).Return(test.token, test.errToken)
+			db.On("GetTokenByUserId", test.ctx, test.userID).Return(test.token, test.errToken)
 			logger := log.NewLogfmtLogger(os.Stdout)
 			svc := New(logger, db, nil)
-			newSvc, err := svc.RecreateGmailService(test.ctx, test.userId)
+			newSvc, err := svc.RecreateGmailService(test.ctx, test.userID)
 			test.assertErr(t, err)
 			test.assertSvc(t, newSvc)
 		})
