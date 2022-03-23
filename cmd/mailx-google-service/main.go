@@ -16,9 +16,11 @@ import (
 	"github.com/orlandorode97/mailx-google-service"
 	"github.com/orlandorode97/mailx-google-service/auth"
 	"github.com/orlandorode97/mailx-google-service/labels"
+	"github.com/orlandorode97/mailx-google-service/messages"
 	"github.com/orlandorode97/mailx-google-service/pkg/google"
 	"github.com/orlandorode97/mailx-google-service/pkg/repos"
 	repopg "github.com/orlandorode97/mailx-google-service/pkg/repos/postgres"
+	"github.com/orlandorode97/mailx-google-service/users"
 	"github.com/rs/cors"
 	"github.com/spf13/viper"
 )
@@ -49,7 +51,6 @@ func main() {
 	if repo == nil {
 		logger.Log(
 			"message", "it was not possible to open a new connection with the database.",
-			"err", err.Error(),
 			"severity", "CRITICAL",
 		)
 		return
@@ -57,24 +58,37 @@ func main() {
 
 	oauthConfig := google.NewConfig()
 
-	mailxSvc := mailx.New(logger, oauthConfig)
+	mailxSvc := mailx.New(logger, repo, oauthConfig)
 
-	var labelsSvc labels.Service
-	labelsSvc = labels.NewService(logger, repo, mailxSvc)
-
-	var authSvc auth.Service
-	authSvc = auth.New(logger, oauthConfig, repo, mailxSvc)
+	authSvc := auth.New(logger, oauthConfig, repo, mailxSvc)
+	labelsSvc := labels.New(logger, repo, mailxSvc)
+	usersSvc := users.New(logger, repo, mailxSvc)
+	messagesSvc := messages.New(logger, repo, mailxSvc)
 
 	mux := http.NewServeMux()
 	mux.Handle("/labels/", labels.MakeHandler(labelsSvc, logger))
-	mux.Handle("/login/", auth.MakeHandler(authSvc, logger))
+	mux.Handle("/auth/", auth.MakeHandler(authSvc, logger))
+	mux.Handle("/users/", users.MakeHandler(usersSvc, logger))
+	mux.Handle("/messages/", messages.MakeHandler(messagesSvc, logger))
 
 	mux.Handle("/health", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		fmt.Fprintf(w, "ok")
 	}))
 
-	c := cors.AllowAll()
+	c := cors.New(cors.Options{
+		AllowedOrigins: []string{"http://localhost:3000"},
+		AllowedMethods: []string{
+			http.MethodHead,
+			http.MethodGet,
+			http.MethodPost,
+			http.MethodPut,
+			http.MethodPatch,
+			http.MethodDelete,
+		},
+		AllowedHeaders:   []string{"*"},
+		AllowCredentials: true,
+	})
 
 	server := &http.Server{
 		Addr:    ":8080",
