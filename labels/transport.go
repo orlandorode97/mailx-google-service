@@ -70,8 +70,7 @@ func decodeLabelsRequest(_ context.Context, r *http.Request) (interface{}, error
 
 	userID, ok := r.Context().Value(middlewares.UserIDKey).(string)
 	if !ok {
-		// return custom error
-		return nil, nil
+		return nil, models.ErrInvalidData{Field: "user_id"}
 	}
 
 	return getLabelsRequest{

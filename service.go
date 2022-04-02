@@ -2,6 +2,7 @@ package mailx
 
 import (
 	"context"
+	"sync"
 
 	"github.com/go-kit/log"
 	"github.com/orlandorode97/mailx-google-service/pkg/google"
@@ -52,6 +53,7 @@ type service struct {
 	repo   repos.TokenRepository
 	//Map that holds google user ID as a key and stores a pointer gmail service.
 	gmailSvcs map[string]google.Service
+	mu        sync.Mutex
 }
 
 func New(logger log.Logger, repo repos.TokenRepository, config *oauth2.Config) Service {
@@ -64,12 +66,18 @@ func New(logger log.Logger, repo repos.TokenRepository, config *oauth2.Config) S
 }
 
 func (s *service) AddGmailServiceByID(userID string, gmailSvc google.Service) google.Service {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	s.gmailSvcs[userID] = gmailSvc
 	return gmailSvc
 }
 
 func (s *service) GetGmailService(userID string) google.Service {
-	if gmailSvc, ok := s.gmailSvcs[userID]; ok {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	gmailSvc, ok := s.gmailSvcs[userID]
+	if ok {
 		return gmailSvc
 	}
 

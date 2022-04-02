@@ -3,6 +3,7 @@ package models
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 )
 
@@ -48,10 +49,20 @@ func (e ErrInvalidSignature) Error() string {
 	return "the token has an invalid signature."
 }
 
+type ErrInvalidData struct {
+	Field string
+}
+
+func (e ErrInvalidData) Error() string {
+	return fmt.Sprintf("the field `%s` is invalid", e.Field)
+}
+
 // ErrorEncoder encodes incoming errors to write the corresponding http status header.
 func ErrorEncoder(_ context.Context, err error, w http.ResponseWriter) {
 
 	switch err.(type) {
+	case ErrInvalidData:
+		w.WriteHeader(http.StatusBadRequest)
 	case ErrAuthUrl:
 		w.WriteHeader(http.StatusServiceUnavailable)
 	case ErrInvalidSignature, ErrInvalidToken, ErrExpiredToken, ErrMalformedToken, ErrInactiveToken, ErrInvalidCookie:

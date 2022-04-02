@@ -22,9 +22,10 @@ func NewConfig() *oauth2.Config {
 		ClientSecret: viper.GetString("GOOGLE_CLIENT_SECRET"),
 		Scopes: []string{
 			gmail.MailGoogleComScope,
+			gmail.GmailModifyScope,
+			gmail.GmailReadonlyScope,
 			gmail.GmailAddonsCurrentActionComposeScope,
 			gmail.GmailAddonsCurrentMessageActionScope,
-			gmail.GmailAddonsCurrentMessageMetadataScope,
 			gmail.GmailAddonsCurrentMessageReadonlyScope,
 			gmail.GmailComposeScope,
 			oauthv2.UserinfoProfileScope,

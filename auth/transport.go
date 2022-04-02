@@ -10,6 +10,7 @@ import (
 	"github.com/go-kit/log"
 	"github.com/gorilla/mux"
 	"github.com/orlandorode97/mailx-google-service/pkg/models"
+	"github.com/spf13/viper"
 )
 
 func MakeHandler(authSvc Service, logger log.Logger) http.Handler {
@@ -82,7 +83,7 @@ func decodeCallbackRequest(_ context.Context, r *http.Request) (interface{}, err
 func encodeCallbackResponse(_ context.Context, w http.ResponseWriter, response interface{}) error {
 	var redirectUrl string
 	if e, ok := response.(errorer); ok && e.error() != nil {
-		redirectUrl = fmt.Sprintf("http://localhost:3000/error?error_message=%s", e.error().Error())
+		redirectUrl = fmt.Sprintf("%s/error?error_message=%s", viper.GetString("MAILX_APP_URL"), e.error().Error())
 		http.Redirect(w, &http.Request{}, redirectUrl, http.StatusPermanentRedirect)
 		return nil
 	}
@@ -97,7 +98,7 @@ func encodeCallbackResponse(_ context.Context, w http.ResponseWriter, response i
 
 	w.Header().Add("Set-Cookie", cookie.String())
 
-	redirectUrl = "http://localhost:3000/success?mailx_google_success=true"
+	redirectUrl = fmt.Sprintf("%s/success?mailx_google_success=true", viper.GetString("MAILX_APP_URL"))
 	http.Redirect(w, &http.Request{}, redirectUrl, http.StatusPermanentRedirect)
 	return nil
 }

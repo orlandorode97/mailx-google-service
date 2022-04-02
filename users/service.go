@@ -32,14 +32,14 @@ func (s *service) GetUserByID(ID string) (*models.User, error) {
 	user, err := s.repo.GetUserByID(context.Background(), ID)
 	if err != nil {
 		s.logger.Log(
-			"message", fmt.Sprintf("error getting user with ID %s ", ID),
+			"message", fmt.Sprintf("error getting user=%s ", ID),
 			"error", err.Error(),
 			"severity", "ERROR",
 		)
 		return nil, err
 	}
 	s.logger.Log(
-		"message", fmt.Sprintf("getting user with ID %s", ID),
+		"message", fmt.Sprintf("getting user=%s", ID),
 		"severity", "INFO",
 	)
 	return user, nil

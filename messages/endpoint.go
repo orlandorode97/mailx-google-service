@@ -4,16 +4,18 @@ import (
 	"context"
 
 	"github.com/go-kit/kit/endpoint"
-	"google.golang.org/api/gmail/v1"
+	"github.com/orlandorode97/mailx-google-service/pkg/models"
 )
 
 type Endpoints struct {
-	GetMessagesEndpoint endpoint.Endpoint
+	GetMessagesEndpoint    endpoint.Endpoint
+	GetMessageByIDEndpoint endpoint.Endpoint
 }
 
 func MakeEndpoints(s Service) Endpoints {
 	return Endpoints{
-		GetMessagesEndpoint: MakeGetMessages(s),
+		GetMessagesEndpoint:    MakeGetMessages(s),
+		GetMessageByIDEndpoint: MakeGetMessageByID(s),
 	}
 }
 
@@ -32,11 +34,36 @@ func MakeGetMessages(s Service) endpoint.Endpoint {
 	}
 }
 
+func MakeGetMessageByID(s Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(getMessageByIDRequest)
+		message, err := s.GetMessageByID(ctx, req.UserID, req.MessageID)
+		if err != nil {
+			return getMessageByIDResponse{
+				Err: err,
+			}, nil
+		}
+		return getMessageByIDResponse{
+			Message: message,
+		}, nil
+	}
+}
+
 type getMessagesRequest struct {
 	UserID string
 }
 
 type getMessagesResponse struct {
-	Messages []*gmail.Message `json:"messages"`
-	Err      error            `json:"error,omitempty"`
+	Messages []*models.Message `json:"messages"`
+	Err      error             `json:"error,omitempty"`
+}
+
+type getMessageByIDRequest struct {
+	UserID    string
+	MessageID string
+}
+
+type getMessageByIDResponse struct {
+	Message *models.Message `json:"message"`
+	Err     error           `json:"error,omitempty"`
 }
