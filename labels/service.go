@@ -77,7 +77,7 @@ func (s *service) GetLabels(userID string) ([]*gmail.Label, error) {
 
 	if err != nil {
 		s.logger.Log(
-			"message", fmt.Sprintf("error getting labels for user id %s", userID),
+			"message", fmt.Sprintf("error getting labels for user=%s", userID),
 			"error", err.Error(),
 			"severity", "ERROR",
 		)
@@ -85,7 +85,7 @@ func (s *service) GetLabels(userID string) ([]*gmail.Label, error) {
 	}
 
 	s.logger.Log(
-		"message", fmt.Sprintf("get labels for user id %s", userID),
+		"message", fmt.Sprintf("get labels for user=%s", userID),
 		"severity", "INFO",
 	)
 

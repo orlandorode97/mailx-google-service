@@ -17,10 +17,6 @@ var (
 	UserIDKey      contextMailxKey = "UserID"
 )
 
-func JWTKeyFunc(token *jwt.Token) (interface{}, error) {
-	return []byte(viper.GetString("JWT_SIGNING_KEY")), nil
-}
-
 func Authentication(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 		ctx := context.Background()
@@ -28,6 +24,13 @@ func Authentication(next http.Handler) http.Handler {
 		if err != nil {
 			ctx = context.WithValue(r.Context(), InvalidAuthKey, models.ErrInvalidCookie{})
 			next.ServeHTTP(rw, r.WithContext(ctx))
+			return
+		}
+
+		if cookie.Value == "" {
+			ctx = context.WithValue(r.Context(), InvalidAuthKey, models.ErrInvalidCookie{})
+			next.ServeHTTP(rw, r.WithContext(ctx))
+			return
 		}
 
 		token, err := jwt.ParseWithClaims(cookie.Value, &auth.MailxClaims{}, func(t *jwt.Token) (interface{}, error) {
@@ -52,6 +55,7 @@ func Authentication(next http.Handler) http.Handler {
 				}
 			}
 			next.ServeHTTP(rw, r.WithContext(ctx))
+			return
 		}
 
 		payload := token.Claims.(*auth.MailxClaims)

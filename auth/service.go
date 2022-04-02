@@ -129,12 +129,12 @@ func (s *service) createUser(ctx context.Context, token *oauth2.Token) (*models.
 	_, err = s.repo.GetUserByID(ctx, user.ID)
 	if err == sql.ErrNoRows {
 		s.logger.Log(
-			"message", fmt.Sprintf("creating user %s with ID %s", user.GivenName, user.ID),
+			"message", fmt.Sprintf("creating user %s=%s", user.GivenName, user.ID),
 			"severity", "INFO",
 		)
 		if err = s.repo.CreateUser(ctx, user); err != nil {
 			s.logger.Log(
-				"message", fmt.Sprintf("error creating user %s with ID %s", user.GivenName, user.ID),
+				"message", fmt.Sprintf("error creating user %s=%s", user.GivenName, user.ID),
 				"error", err.Error(),
 				"severity", "ERROR",
 			)
@@ -145,7 +145,7 @@ func (s *service) createUser(ctx context.Context, token *oauth2.Token) (*models.
 
 	if err != nil {
 		s.logger.Log(
-			"message", fmt.Sprintf("error by getting user with ID %s", user.ID),
+			"message", fmt.Sprintf("error by getting user=%s", user.ID),
 			"error", err.Error(),
 			"severity", "ERROR",
 		)
@@ -153,7 +153,7 @@ func (s *service) createUser(ctx context.Context, token *oauth2.Token) (*models.
 	}
 
 	s.logger.Log(
-		"message", fmt.Sprintf("user with ID %s already exists, skipping creation.", user.ID),
+		"message", fmt.Sprintf("user=%s already exists, skipping creation.", user.ID),
 		"severity", "INFO",
 	)
 
@@ -164,12 +164,12 @@ func (s *service) saveAccessToken(ctx context.Context, ID string, token *oauth2.
 	_, err := s.repo.GetTokenByUserId(ctx, ID)
 	if err == sql.ErrNoRows {
 		s.logger.Log(
-			"message", fmt.Sprintf("saving token for the user with ID %s", ID),
+			"message", fmt.Sprintf("saving token for the user=%s", ID),
 			"severity", "INFO",
 		)
 		if err = s.repo.SaveAccessToken(ctx, ID, token); err != nil {
 			s.logger.Log(
-				"message", fmt.Sprintf("error saving token for the userwith ID %s", ID),
+				"message", fmt.Sprintf("error saving token for the user=%s", ID),
 				"error", err.Error(),
 				"severity", "ERROR",
 			)
@@ -182,7 +182,7 @@ func (s *service) saveAccessToken(ctx context.Context, ID string, token *oauth2.
 
 	if err != nil {
 		s.logger.Log(
-			"message", fmt.Sprintf("error by token for the user with ID %s", ID),
+			"message", fmt.Sprintf("error by token for the user=%s", ID),
 			"error", err.Error(),
 			"severity", "ERROR",
 		)

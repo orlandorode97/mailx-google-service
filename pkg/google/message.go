@@ -33,8 +33,8 @@ func (m *MessagesService) Import(userID string, message *gmail.Message) Messenge
 func (m *MessagesService) Insert(userID string, message *gmail.Message) MessengerClientResp {
 	return m.s.Insert(userID, message)
 }
-func (m *MessagesService) List(userID string) MessengerClientList {
-	return m.s.List(userID)
+func (m *MessagesService) List(userID string, maxResults int64) MessengerClientList {
+	return m.s.List(userID).MaxResults(maxResults)
 }
 func (m *MessagesService) Modify(userID string, messageID string, req *gmail.ModifyMessageRequest) MessengerClientResp {
 	return m.s.Modify(userID, messageID, req)
@@ -101,7 +101,7 @@ type MessageInserterCall interface {
 }
 
 type MessageListerCall interface {
-	List(string) MessengerClientList
+	List(string, int64) MessengerClientList
 }
 
 type MessageModifierCall interface {
